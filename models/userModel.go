@@ -12,3 +12,11 @@ type User struct {
 	CreatedAt time.Time `json:"createdat" sql:"created_at"`
 	UpdatedAt time.Time `json:"updatedat" sql:"updated_at"`
 }
+
+type UserRetrieve struct {
+	ID        string `json:"id" sql:"id"`
+	Email     string `json:"email" validate:"required" sql:"email"`
+	Username  string `json:"username" sql:"username"`
+	FirstName string `json:"first_name" sql:"first_name"`
+	LastName  string `json:"last_name" sql:"last_name"`
+}
