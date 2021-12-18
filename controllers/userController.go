@@ -10,6 +10,7 @@ import (
 	"github.com/adhikaribishal/bookStoreBackend/database"
 	"github.com/adhikaribishal/bookStoreBackend/helpers"
 	"github.com/adhikaribishal/bookStoreBackend/models"
+	// _ "github.com/lib/pq"
 )
 
 type response struct {
@@ -78,7 +79,28 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	fmt.Fprintf(w, "Update User: %d\n", userID)
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "PATCH")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	var user models.User
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		log.Fatalf("Unble to decode the request body. %v", err)
+	}
+
+	updatedRows := updateUser(int64(userID), user)
+
+	msg := fmt.Sprintf("User updated successfully. Total rows/record affected %v", updatedRows)
+
+	res := response{
+		ID:      int64(userID),
+		Message: msg,
+	}
+
+	json.NewEncoder(w).Encode(res)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request, userID int) {
@@ -86,7 +108,21 @@ func DeleteUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	fmt.Fprintf(w, "Delete User: %d\n", userID)
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	deletedRows := deleteUser(int64(userID))
+
+	msg := fmt.Sprintf("User deleted successfully. Total rows/record affected %v", deletedRows)
+
+	res := response{
+		ID:      int64(userID),
+		Message: msg,
+	}
+
+	json.NewEncoder(w).Encode(res)
 }
 
 func insertUser(user models.User) int64 {
@@ -103,7 +139,8 @@ func insertUser(user models.User) int64 {
 						first_name text,
 						last_name text,
 						created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-						updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+						updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+						UNIQUE(email, username)
 						)`)
 	if err != nil {
 		log.Fatal(err)
@@ -123,20 +160,19 @@ func insertUser(user models.User) int64 {
 	return id
 }
 
-func getUser(userID int) (models.User, error) {
+func getUser(userID int) (models.UserRetrieve, error) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
 	log.Println("Succesfully connected!")
 
-	var user models.User
+	var user models.UserRetrieve
 
-	sqlStatement := `SELECT * FROM users WHERE id=$1`
+	sqlStatement := `SELECT id, email, username, first_name, last_name FROM users WHERE id=$1`
 
 	row := db.QueryRow(sqlStatement, userID)
 
-	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.Username, &user.FirstName, &user.LastName,
-		&user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(&user.ID, &user.Email, &user.Username, &user.FirstName, &user.LastName)
 
 	switch err {
 	case sql.ErrNoRows:
@@ -151,15 +187,15 @@ func getUser(userID int) (models.User, error) {
 	return user, err
 }
 
-func getAllUsers() ([]models.User, error) {
+func getAllUsers() ([]models.UserRetrieve, error) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
 	log.Println("Successfully connected!")
 
-	var users []models.User
+	var users []models.UserRetrieve
 
-	sqlStatement := `SELECT * FROM users`
+	sqlStatement := `SELECT id, email, username, first_name, last_name FROM users`
 
 	rows, err := db.Query(sqlStatement)
 
@@ -170,10 +206,9 @@ func getAllUsers() ([]models.User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user models.User
+		var user models.UserRetrieve
 
-		err = rows.Scan(&user.ID, &user.Email, &user.Password, &user.Username, &user.FirstName, &user.LastName,
-			&user.CreatedAt, &user.UpdatedAt)
+		err = rows.Scan(&user.ID, &user.Email, &user.Username, &user.FirstName, &user.LastName)
 
 		if err != nil {
 			log.Fatalf("Unable to scan the row. %v", err)
@@ -183,4 +218,46 @@ func getAllUsers() ([]models.User, error) {
 	}
 
 	return users, err
+}
+
+func updateUser(id int64, user models.User) int64 {
+	db := database.CreateDatabseConnection()
+	defer db.Close()
+
+	sqlStatement := `UPDATE users SET email=$2, first_name=$3, last_name=$4 WHERE id=$1`
+
+	res, err := db.Exec(sqlStatement, id, user.Email, user.FirstName, user.LastName)
+	if err != nil {
+		log.Fatalf("Unable to execute the query. %v", err)
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Fatalf("Error while checking the affeced rows. %v", err)
+	}
+
+	fmt.Printf("Total rows/record affected %v\n", rowsAffected)
+
+	return rowsAffected
+}
+
+func deleteUser(id int64) int64 {
+	db := database.CreateDatabseConnection()
+	defer db.Close()
+
+	sqlStatement := `DELETE FROM users WHERE id=$1`
+
+	res, err := db.Exec(sqlStatement, id)
+	if err != nil {
+		log.Fatalf("Unable to execute the query. %v", err)
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Fatalf("Error while checking the affected rows. %v", err)
+	}
+
+	fmt.Printf("Total rows/records affected %v", rowsAffected)
+
+	return rowsAffected
 }
