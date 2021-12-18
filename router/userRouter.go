@@ -19,9 +19,11 @@ func ServeUsers(w http.ResponseWriter, r *http.Request) {
 
 	switch head {
 	case "":
-		controllers.GetAllUsers(w, r)
-	case "create":
-		controllers.CreateUser(w, r)
+		if r.Method == "GET" {
+			controllers.GetAllUsers(w, r)
+		} else {
+			controllers.CreateUser(w, r)
+		}
 	default:
 		id, err := strconv.Atoi(head)
 		if err != nil || id <= 0 {
