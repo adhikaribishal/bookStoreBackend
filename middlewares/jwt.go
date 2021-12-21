@@ -31,6 +31,7 @@ type JSONWebKeys struct {
 func JwtAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		notAuth := []string{"/api/users/create", "/api/users/authenticate"}
+
 		requestPath := r.URL.Path
 
 		for _, value := range notAuth {
