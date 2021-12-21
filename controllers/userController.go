@@ -12,11 +12,6 @@ import (
 	"github.com/adhikaribishal/bookStoreBackend/models"
 )
 
-type response struct {
-	ID      int64  `json:"id,omitempty"`
-	Message string `json:"message,omitempty"`
-}
-
 func Authenticate(w http.ResponseWriter, r *http.Request) {
 	if !helpers.EnsureMethod(w, r, "POST") {
 		return
