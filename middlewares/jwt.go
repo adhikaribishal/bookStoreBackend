@@ -47,7 +47,6 @@ func JwtAuthentication(next http.Handler) http.Handler {
 		if tokenHeader == "" {
 			response = helpers.Message(false, "Missing auth token")
 			w.WriteHeader(http.StatusForbidden)
-			w.Header().Add("Content-Type", "application/json")
 			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
@@ -56,7 +55,6 @@ func JwtAuthentication(next http.Handler) http.Handler {
 		if len(splitted) != 2 {
 			response = helpers.Message(false, "Invalid/Malformed auth token")
 			w.WriteHeader(http.StatusForbidden)
-			w.Header().Add("Content-Type", "application/json")
 			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
@@ -71,7 +69,6 @@ func JwtAuthentication(next http.Handler) http.Handler {
 		if err != nil {
 			response = helpers.Message(false, "Malformed authentication token")
 			w.WriteHeader(http.StatusForbidden)
-			w.Header().Add("Content-Type", "application/json")
 			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
@@ -79,12 +76,10 @@ func JwtAuthentication(next http.Handler) http.Handler {
 		if !token.Valid {
 			response = helpers.Message(false, "Token is not valid")
 			w.WriteHeader(http.StatusForbidden)
-			w.Header().Add("Content-Type", "application/json")
 			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
 
-		// fmt.Sprintf("User %", tk.Username)
 		ctx := context.WithValue(r.Context(), "user", tk.UserId)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
