@@ -9,7 +9,7 @@ import (
 )
 
 type book struct {
-	ID int
+	id int
 }
 
 func ServeBooks(w http.ResponseWriter, r *http.Request) {
@@ -18,8 +18,8 @@ func ServeBooks(w http.ResponseWriter, r *http.Request) {
 	head, r.URL.Path = helpers.ShiftPath(r.URL.Path)
 
 	switch head {
-	// case "":
-	// 	controllers.GetAllBooks(w, r)
+	case "":
+		controllers.GetAllBooks(w, r)
 	case "create":
 		controllers.CreateBook(w, r)
 	default:
@@ -28,6 +28,24 @@ func ServeBooks(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-		user{id}.serveHTTP(w, r)
+		book{id}.serveHTTP(w, r)
+	}
+}
+
+func (h book) serveHTTP(w http.ResponseWriter, r *http.Request) {
+	var head string
+	head, r.URL.Path = helpers.ShiftPath(r.URL.Path)
+
+	switch head {
+	case "":
+		if r.Method == "GET" {
+			controllers.GetBook(w, r, h.id)
+		} else if r.Method == "PATCH" {
+			controllers.UpdateBook(w, r, h.id)
+		} else {
+			controllers.DeleteBook(w, r, h.id)
+		}
+	default:
+		http.NotFound(w, r)
 	}
 }
