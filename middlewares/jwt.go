@@ -48,7 +48,7 @@ func JwtAuthentication(next http.Handler) http.Handler {
 			response = helpers.Message(false, "Missing auth token")
 			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
-			helpers.Respond(w, response)
+			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
 
@@ -57,7 +57,7 @@ func JwtAuthentication(next http.Handler) http.Handler {
 			response = helpers.Message(false, "Invalid/Malformed auth token")
 			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
-			helpers.Respond(w, response)
+			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
 
@@ -72,7 +72,7 @@ func JwtAuthentication(next http.Handler) http.Handler {
 			response = helpers.Message(false, "Malformed authentication token")
 			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
-			helpers.Respond(w, response)
+			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
 
@@ -80,7 +80,7 @@ func JwtAuthentication(next http.Handler) http.Handler {
 			response = helpers.Message(false, "Token is not valid")
 			w.WriteHeader(http.StatusForbidden)
 			w.Header().Add("Content-Type", "application/json")
-			helpers.Respond(w, response)
+			helpers.Respond(w, response, http.StatusForbidden)
 			return
 		}
 
