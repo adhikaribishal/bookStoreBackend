@@ -33,7 +33,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -54,8 +53,6 @@ func GetUser(w http.ResponseWriter, r *http.Request, userID int) {
 	if !helpers.EnsureMethod(w, r, "GET") {
 		return
 	}
-
-	w.Header().Set("Context-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Orgin", "*")
 
 	response, statusCode := getUser(userID)
@@ -68,7 +65,6 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	response, statusCode := getAllUsers()
@@ -80,7 +76,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "PATCH")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -89,7 +84,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, userID int) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		log.Fatalf("Unble to decode the request body. %v", err)
+		helpers.Respond(w, helpers.Message(false, "Invalid request"), http.StatusBadRequest)
+		return
 	}
 
 	response, statusCode := updateUser(int64(userID), user)
@@ -101,7 +97,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -143,11 +138,9 @@ func getAllUsers() (map[string]interface{}, int) {
 	sqlStatement := `SELECT id, email, username, first_name, last_name FROM users`
 
 	rows, err := db.Query(sqlStatement)
-
 	if err != nil {
 		return helpers.Message(false, "Unable to execute the query."), http.StatusBadRequest
 	}
-
 	defer rows.Close()
 
 	for rows.Next() {
