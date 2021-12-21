@@ -26,12 +26,12 @@ func Authenticate(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
-		helpers.Respond(w, helpers.Message(false, "Invalid Request"))
+		helpers.Respond(w, helpers.Message(false, "Invalid Request"), http.StatusBadRequest)
 		return
 	}
 
 	resp := models.Login(user.Email, user.Password)
-	helpers.Respond(w, resp)
+	helpers.Respond(w, resp, http.StatusOK)
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -48,12 +48,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
-		helpers.Respond(w, helpers.Message(false, "Invalid request"))
+		helpers.Respond(w, helpers.Message(false, "Invalid request"), http.StatusBadRequest)
 		return
 	}
 
 	resp := user.Create()
-	helpers.Respond(w, resp)
+	helpers.Respond(w, resp, http.StatusCreated)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request, userID int) {
