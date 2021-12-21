@@ -39,7 +39,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -61,7 +61,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Context-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Orgin", "*")
 
 	user, err := getUser(userID)
@@ -73,7 +73,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, userID int) {
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	users, err := getAllUsers()
@@ -90,7 +90,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "PATCH")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -119,7 +119,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request, userID int) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
