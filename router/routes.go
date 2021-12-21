@@ -32,6 +32,8 @@ func serveApi(w http.ResponseWriter, r *http.Request) {
 	switch head {
 	case "users":
 		ServeUsers(w, r)
+	case "books":
+		ServeBooks(w, r)
 	default:
 		http.NotFound(w, r)
 	}
