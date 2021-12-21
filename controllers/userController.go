@@ -63,25 +63,21 @@ func GetUser(w http.ResponseWriter, r *http.Request, userID int) {
 	w.Header().Set("Context-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Orgin", "*")
 
-	user, err := getUser(userID)
-	if err != nil {
-		log.Fatalf("Unable to get user. %v", err)
-	}
+	response, statusCode := getUser(userID)
 
-	json.NewEncoder(w).Encode(user)
+	helpers.Respond(w, response, statusCode)
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	if !helpers.EnsureMethod(w, r, "GET") {
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	users, err := getAllUsers()
-
-	if err != nil {
-		log.Fatalf("Unable to get all user. %v", err)
-	}
-
-	json.NewEncoder(w).Encode(users)
+	response, statusCode := getAllUsers()
+	helpers.Respond(w, response, statusCode)
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request, userID int) {
@@ -101,16 +97,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request, userID int) {
 		log.Fatalf("Unble to decode the request body. %v", err)
 	}
 
-	updatedRows := updateUser(int64(userID), user)
-
-	msg := fmt.Sprintf("User updated successfully. Total rows/record affected %v", updatedRows)
-
-	res := response{
-		ID:      int64(userID),
-		Message: msg,
-	}
-
-	json.NewEncoder(w).Encode(res)
+	response, statusCode := updateUser(int64(userID), user)
+	helpers.Respond(w, response, statusCode)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request, userID int) {
@@ -123,19 +111,11 @@ func DeleteUser(w http.ResponseWriter, r *http.Request, userID int) {
 	w.Header().Set("Access-Control-Allow-Methods", "DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	deletedRows := deleteUser(int64(userID))
-
-	msg := fmt.Sprintf("User deleted successfully. Total rows/record affected %v", deletedRows)
-
-	res := response{
-		ID:      int64(userID),
-		Message: msg,
-	}
-
-	json.NewEncoder(w).Encode(res)
+	response, statusCode := deleteUser(int64(userID))
+	helpers.Respond(w, response, statusCode)
 }
 
-func getUser(userID int) (models.UserRetrieve, error) {
+func getUser(userID int) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
@@ -148,21 +128,16 @@ func getUser(userID int) (models.UserRetrieve, error) {
 	row := db.QueryRow(sqlStatement, userID)
 
 	err := row.Scan(&user.ID, &user.Email, &user.Username, &user.FirstName, &user.LastName)
-
-	switch err {
-	case sql.ErrNoRows:
-		log.Println("No rows were returned!")
-		return user, nil
-	case nil:
-		return user, nil
-	default:
-		log.Fatalf("Unable to scan the row. %v", err)
+	if err != nil && err != sql.ErrNoRows {
+		return helpers.Message(false, "Connection error. Please retry"), http.StatusInternalServerError
 	}
 
-	return user, err
+	response := helpers.Message(true, "User fetched succesfully")
+	response["user"] = user
+	return response, http.StatusOK
 }
 
-func getAllUsers() ([]models.UserRetrieve, error) {
+func getAllUsers() (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
@@ -175,7 +150,7 @@ func getAllUsers() ([]models.UserRetrieve, error) {
 	rows, err := db.Query(sqlStatement)
 
 	if err != nil {
-		log.Fatalf("Unable to execute the query. %v", err)
+		return helpers.Message(false, "Unable to execute the query."), http.StatusBadRequest
 	}
 
 	defer rows.Close()
@@ -186,16 +161,18 @@ func getAllUsers() ([]models.UserRetrieve, error) {
 		err = rows.Scan(&user.ID, &user.Email, &user.Username, &user.FirstName, &user.LastName)
 
 		if err != nil {
-			log.Fatalf("Unable to scan the row. %v", err)
+			return helpers.Message(false, "Unable to scan the row."), http.StatusBadRequest
 		}
 
 		users = append(users, user)
 	}
 
-	return users, err
+	response := helpers.Message(true, "Users fetched successfully")
+	response["users"] = users
+	return response, http.StatusOK
 }
 
-func updateUser(id int64, user models.User) int64 {
+func updateUser(id int64, user models.User) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
@@ -203,20 +180,23 @@ func updateUser(id int64, user models.User) int64 {
 
 	res, err := db.Exec(sqlStatement, id, user.Email, user.FirstName, user.LastName)
 	if err != nil {
-		log.Fatalf("Unable to execute the query. %v", err)
+		return helpers.Message(false, "Unable to execute the query."), http.StatusInternalServerError
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		log.Fatalf("Error while checking the affeced rows. %v", err)
+		return helpers.Message(false, "Error while checking the affeced rows."), http.StatusInternalServerError
 	}
 
 	fmt.Printf("Total rows/record affected %v\n", rowsAffected)
 
-	return rowsAffected
+	response := helpers.Message(true, "User updated successfully")
+	response["user"] = user
+
+	return response, http.StatusOK
 }
 
-func deleteUser(id int64) int64 {
+func deleteUser(id int64) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
@@ -224,15 +204,14 @@ func deleteUser(id int64) int64 {
 
 	res, err := db.Exec(sqlStatement, id)
 	if err != nil {
-		log.Fatalf("Unable to execute the query. %v", err)
+		return helpers.Message(false, "Unable to execute the query."), http.StatusInternalServerError
 	}
 
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
-		log.Fatalf("Error while checking the affected rows. %v", err)
+		return helpers.Message(false, fmt.Sprintf("Error while checking the affected rows. %v", err)), http.StatusInternalServerError
 	}
 
-	fmt.Printf("Total rows/records affected %v", rowsAffected)
-
-	return rowsAffected
+	response := helpers.Message(true, fmt.Sprintf("User deleted successfully. Rows affected: %v", rowsAffected))
+	return response, http.StatusOK
 }
