@@ -112,7 +112,7 @@ func (user *User) Create() map[string]interface{} {
 		return helpers.Message(false, "Failed to create account, connection error.")
 	}
 
-	tk := &Token{UserId: id}
+	tk := &Token{UserId: key(id)}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 	tokenString, _ := token.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
 	user.Token = tokenString
@@ -150,7 +150,7 @@ func Login(email, password string) map[string]interface{} {
 
 	user.Password = ""
 
-	tk := &Token{UserId: user.ID}
+	tk := &Token{UserId: key(user.ID)}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 	tokenString, _ := token.SignedString([]byte(os.Getenv("TOKEN_PASSWORD")))
 	user.Token = tokenString
