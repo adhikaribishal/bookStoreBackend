@@ -10,7 +10,6 @@ import (
 	"github.com/adhikaribishal/bookStoreBackend/database"
 	"github.com/adhikaribishal/bookStoreBackend/helpers"
 	"github.com/adhikaribishal/bookStoreBackend/models"
-	// _ "github.com/lib/pq"
 )
 
 type response struct {
