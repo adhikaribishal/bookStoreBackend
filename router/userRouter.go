@@ -18,12 +18,16 @@ func ServeUsers(w http.ResponseWriter, r *http.Request) {
 	head, r.URL.Path = helpers.ShiftPath(r.URL.Path)
 
 	switch head {
+	// case "":
+	// 	if r.Method == "GET" {
+	// 		controllers.GetAllUsers(w, r)
+	// 	} else {
+	// 		controllers.CreateUser(w, r)
+	// 	}
 	case "":
-		if r.Method == "GET" {
-			controllers.GetAllUsers(w, r)
-		} else {
-			controllers.CreateUser(w, r)
-		}
+		controllers.GetAllUsers(w, r)
+	case "create":
+		controllers.CreateUser(w, r)
 	case "authenticate":
 		controllers.Authenticate(w, r)
 	default:
