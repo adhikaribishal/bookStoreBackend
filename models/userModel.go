@@ -13,8 +13,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type key int64
 type Token struct {
-	UserId int64
+	UserId key
 	jwt.StandardClaims
 }
 
