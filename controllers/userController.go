@@ -18,6 +18,22 @@ type response struct {
 	Message string `json:"message,omitempty"`
 }
 
+func Authenticate(w http.ResponseWriter, r *http.Request) {
+	if !helpers.EnsureMethod(w, r, "POST") {
+		return
+	}
+
+	user := &models.User{}
+	err := json.NewDecoder(r.Body).Decode(user)
+	if err != nil {
+		helpers.Respond(w, helpers.Message(false, "Invalid Request"))
+		return
+	}
+
+	resp := models.Login(user.Email, user.Password)
+	helpers.Respond(w, resp)
+}
+
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if !helpers.EnsureMethod(w, r, "POST") {
 		return
@@ -28,21 +44,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	var user models.User
+	user := &models.User{}
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
-		log.Fatalf("Unable to decode the request body. %v", err)
+		helpers.Respond(w, helpers.Message(false, "Invalid request"))
+		return
 	}
 
-	insertId := insertUser(user)
-
-	res := response{
-		ID:      insertId,
-		Message: "User created successfully",
-	}
-
-	json.NewEncoder(w).Encode(res)
+	resp := user.Create()
+	helpers.Respond(w, resp)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request, userID int) {

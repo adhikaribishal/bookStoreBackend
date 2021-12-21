@@ -24,6 +24,8 @@ func ServeUsers(w http.ResponseWriter, r *http.Request) {
 		} else {
 			controllers.CreateUser(w, r)
 		}
+	case "authenticate":
+		controllers.Authenticate(w, r)
 	default:
 		id, err := strconv.Atoi(head)
 		if err != nil || id <= 0 {
