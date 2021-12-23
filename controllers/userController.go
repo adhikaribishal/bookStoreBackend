@@ -164,7 +164,11 @@ func updateUser(id int64, user models.User) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
-	sqlStatement := `UPDATE users SET email=$2, first_name=$3, last_name=$4 WHERE id=$1`
+	sqlStatement := `UPDATE users u SET
+				email = CASE WHEN $2 = '' THEN u.email ELSE $2 END,
+				first_name = CASE WHEN $3 = '' THEN u.first_name ELSE $3 END,
+				last_name = CASE WHEN $4 = '' THEN u.last_name ELSE $4 END
+				WHERE id=$1`
 
 	res, err := db.Exec(sqlStatement, id, user.Email, user.FirstName, user.LastName)
 	if err != nil {

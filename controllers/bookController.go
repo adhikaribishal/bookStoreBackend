@@ -144,10 +144,18 @@ func updateBook(id int64, book models.Book) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
-	sqlStatement := `UPDATE books SET title=$2, author=$3, price=$4, publication=$5, published_date=$6, isbn=$7 WHERE id=$1`
+	sqlStatement := `UPDATE books b SET 
+				title = CASE WHEN $2 = '' THEN b.title ELSE $2 END,
+				author = CASE WHEN $3 = '' THEN b.author ELSE $3 END,
+				price = CASE WHEN $4 = '' THEN b.price ELSE $4 END,
+				publication = CASE WHEN $5 = '' THEN b.publication ELSE $5 END,
+				published_date = CASE WHEN $6 = '' THEN b.published_date ELSE $6 END,
+				isbn = CASE WHEN $7 = '' THEN b.isbn ELSE $7 END
+				WHERE id=$1`
 
 	res, err := db.Exec(sqlStatement, id, book.Title, book.Author, book.Price, book.Publication, book.PublishedDate, book.ISBN)
 	if err != nil {
+		fmt.Printf("Error: %v", err)
 		return helpers.Message(false, "Unable to execute the query."), http.StatusInternalServerError
 	}
 
