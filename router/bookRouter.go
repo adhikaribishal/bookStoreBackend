@@ -9,7 +9,7 @@ import (
 )
 
 type book struct {
-	id int
+	id int64
 }
 
 func ServeBooks(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func ServeBooks(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-		book{id}.serveHTTP(w, r)
+		book{int64(id)}.serveHTTP(w, r)
 	}
 }
 

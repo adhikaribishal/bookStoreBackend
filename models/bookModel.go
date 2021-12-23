@@ -109,6 +109,7 @@ func (book *Book) Create() (map[string]interface{}, int) {
 		return helpers.Message(false, "Failed to create book, connection error."), http.StatusInternalServerError
 	}
 
+	book.ID = id
 	response := helpers.Message(true, "Book has been created")
 	response["book"] = book
 	return response, http.StatusCreated

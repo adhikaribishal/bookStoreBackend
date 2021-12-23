@@ -42,7 +42,7 @@ func GetAllBooks(w http.ResponseWriter, r *http.Request) {
 	helpers.Respond(w, response, statusCode)
 }
 
-func GetBook(w http.ResponseWriter, r *http.Request, bookID int) {
+func GetBook(w http.ResponseWriter, r *http.Request, bookID int64) {
 	if !helpers.EnsureMethod(w, r, "GET") {
 		return
 	}
@@ -51,7 +51,7 @@ func GetBook(w http.ResponseWriter, r *http.Request, bookID int) {
 	helpers.Respond(w, response, statusCode)
 }
 
-func UpdateBook(w http.ResponseWriter, r *http.Request, bookID int) {
+func UpdateBook(w http.ResponseWriter, r *http.Request, bookID int64) {
 	if !helpers.EnsureMethod(w, r, "PATCH") {
 		return
 	}
@@ -72,7 +72,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request, bookID int) {
 	helpers.Respond(w, response, statusCode)
 }
 
-func DeleteBook(w http.ResponseWriter, r *http.Request, bookID int) {
+func DeleteBook(w http.ResponseWriter, r *http.Request, bookID int64) {
 	if !helpers.EnsureMethod(w, r, "DELETE") {
 		return
 	}
@@ -118,7 +118,7 @@ func getAllBooks() (map[string]interface{}, int) {
 	return response, http.StatusOK
 }
 
-func getBook(bookID int) (map[string]interface{}, int) {
+func getBook(bookID int64) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
@@ -140,7 +140,7 @@ func getBook(bookID int) (map[string]interface{}, int) {
 	return response, http.StatusOK
 }
 
-func updateBook(id int, book models.Book) (map[string]interface{}, int) {
+func updateBook(id int64, book models.Book) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
@@ -158,13 +158,14 @@ func updateBook(id int, book models.Book) (map[string]interface{}, int) {
 
 	fmt.Printf("Total rows/record affected %v\n", rowsAffected)
 
+	book.ID = id
 	response := helpers.Message(true, "Book updated successfully")
 	response["book"] = book
 
 	return response, http.StatusOK
 }
 
-func deleteBook(id int) (map[string]interface{}, int) {
+func deleteBook(id int64) (map[string]interface{}, int) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 

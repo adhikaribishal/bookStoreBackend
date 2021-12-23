@@ -121,6 +121,7 @@ func (user *User) Create() map[string]interface{} {
 	user.Token = tokenString
 
 	user.Password = ""
+	user.ID = id
 
 	response := helpers.Message(true, "Account has been created")
 	response["user"] = user
