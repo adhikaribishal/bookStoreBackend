@@ -24,3 +24,9 @@
 
 # ENV
 .env
+
+# Temporary ignore for Terraform files
+*.tf
+*.tfstate*
+.terraform/
+.terraform*
