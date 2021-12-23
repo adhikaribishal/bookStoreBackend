@@ -53,11 +53,25 @@ func (book *Book) Validate() (map[string]interface{}, bool) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS books(
+		id SERIAL PRIMARY KEY,
+		title text NOT NULL,
+		author text NOT NULL,
+		price text NOT NULL,
+		publication text NOT NULL,
+		published_date text NOT NULL,
+		isbn text NOT NULL,
+		UNIQUE(isbn)
+	)`)
+	if err != nil {
+		log.Fatalf("Unable to create the books table. %v", err)
+	}
+
 	sqlStatement := `SELECT isbn FROM books WHERE isbn=$1`
 
 	row := db.QueryRow(sqlStatement, book.ISBN)
 
-	err := row.Scan(&temp.ISBN)
+	err = row.Scan(&temp.ISBN)
 	if err != nil && err != sql.ErrNoRows {
 		return helpers.Message(false, "Connection error. Please retry"), false
 	}
@@ -80,27 +94,13 @@ func (book *Book) Create() (map[string]interface{}, int) {
 
 	log.Println("Succesfully connected!")
 
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS books(
-		id SERIAL PRIMARY KEY,
-		title text NOT NULL,
-		author text NOT NULL,
-		price text NOT NULL,
-		publication text NOT NULL,
-		published_date text NOT NULL,
-		isbn text NOT NULL,
-		UNIQUE(isbn)
-	)`)
-	if err != nil {
-		log.Fatalf("Unable to create the books table. %v", err)
-	}
-
 	sqlStatement := `INSERT INTO books
 					(title, author, price, publication, published_date, isbn)
 					VALUES($1, $2, $3, $4, $5, $6)
 					RETURNING id`
 
 	var id int64
-	err = db.QueryRow(sqlStatement, book.Title, book.Author, book.Price, book.Publication, book.PublishedDate, book.ISBN).Scan(&id)
+	err := db.QueryRow(sqlStatement, book.Title, book.Author, book.Price, book.Publication, book.PublishedDate, book.ISBN).Scan(&id)
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}

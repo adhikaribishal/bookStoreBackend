@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -53,14 +54,31 @@ func (user *User) Validate() (map[string]interface{}, bool) {
 	db := database.CreateDatabseConnection()
 	defer db.Close()
 
+	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users(
+		id SERIAL PRIMARY KEY,
+		email text NOT NULL,
+		password text NOT NULL,
+		username text,
+		first_name text,
+		last_name text,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(email, username)
+		)`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	sqlStatement := `SELECT email FROM users WHERE email=$1`
 
 	row := db.QueryRow(sqlStatement, user.Email)
 
-	err := row.Scan(&temp.Email)
+	err = row.Scan(&temp.Email)
 	if err != nil && err != sql.ErrNoRows {
+		fmt.Printf("Error: %v", err)
 		return helpers.Message(false, "Connection error. Please retry"), false
 	}
+	fmt.Println("ASD")
 
 	if temp.Email != "" {
 		return helpers.Message(false, "Email address already in use by another user."), false
@@ -82,28 +100,13 @@ func (user *User) Create() map[string]interface{} {
 
 	log.Println("Succesfully connected!")
 
-	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS users(
-					id SERIAL PRIMARY KEY,
-					email text NOT NULL,
-					password text NOT NULL,
-					username text,
-					first_name text,
-					last_name text,
-					created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-					updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-					UNIQUE(email, username)
-					)`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	sqlStatement := `INSERT INTO users
 					(email, password, username, first_name, last_name)
 					VALUES ($1,$2,$3,$4,$5)
 					RETURNING id`
 
 	var id int64
-	err = db.QueryRow(sqlStatement, user.Email, user.Password, user.Username, user.FirstName, user.LastName).Scan(&id)
+	err := db.QueryRow(sqlStatement, user.Email, user.Password, user.Username, user.FirstName, user.LastName).Scan(&id)
 	if err != nil {
 		log.Fatalf("Unable to execute the query. %v", err)
 	}
