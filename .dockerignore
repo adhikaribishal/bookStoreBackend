@@ -1,0 +1,7 @@
+.terraform
+.vscode
+.terraform.lock.hcl
+aws-ec2.tf
+terraform.tfstate
+terraform.tfstate.backup
+env_sample
